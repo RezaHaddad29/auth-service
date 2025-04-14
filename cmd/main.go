@@ -1,19 +1,18 @@
 package main
 
 import (
-	"fmt"
+	"github.com/RezaHaddad29/auth-service/db"
+	"github.com/RezaHaddad29/auth-service/migrations"
 	"log"
-	"net/http"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Auth Service is running 🚀")
-	})
+	db.ConnectDB()
 
-	port := ":8080"
-	fmt.Println("Starting Auth Service on port", port)
-	if err := http.ListenAndServe(port, nil); err != nil {
-		log.Fatal("Server failed to start:", err)
+	err := migrations.RunMigrations()
+	if err != nil {
+		log.Fatal("Migration failed: ", err)
 	}
+
+	log.Println("Migrations applied successfully")
 }

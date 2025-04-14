@@ -1,10 +1,12 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"log"
+
+	"github.com/RezaHaddad29/auth-service/config"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"your_project/config"
 )
 
 var DB *pgxpool.Pool
