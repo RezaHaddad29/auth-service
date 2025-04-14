@@ -1,15 +1,25 @@
 package main
 
 import (
-	"github.com/RezaHaddad29/auth-service/db"
-	"github.com/RezaHaddad29/auth-service/migrations"
 	"log"
+
+	"github.com/RezaHaddad29/auth-service/config"
+	"github.com/RezaHaddad29/auth-service/pkg/db"
 )
 
 func main() {
-	db.ConnectDB()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("config load failed: %v", err)
+	}
 
-	err := migrations.RunMigrations()
+	err = db.ConnectDB(cfg)
+	if err != nil {
+		log.Fatalf("Connect to DB failed: %v", err)
+	}
+	defer db.CloseDB()
+
+	err = db.RunMigrations(cfg)
 	if err != nil {
 		log.Fatal("Migration failed: ", err)
 	}
