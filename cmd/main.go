@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/RezaHaddad29/auth-service/config"
+	"github.com/RezaHaddad29/auth-service/internal/handler"
+	"github.com/RezaHaddad29/auth-service/internal/middleware"
+	"github.com/RezaHaddad29/auth-service/internal/repository"
+	"github.com/RezaHaddad29/auth-service/internal/service"
 	"github.com/RezaHaddad29/auth-service/pkg/db"
 )
 
@@ -19,10 +25,15 @@ func main() {
 	}
 	defer db.CloseDB()
 
-	err = db.RunMigrations(cfg)
-	if err != nil {
-		log.Fatal("Migration failed: ", err)
-	}
+	userRepo := repository.NewUserRepository(db.DB)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(db.DB)
+	authSvc := service.NewAuthService(userRepo, refreshTokenRepo)
+	authHandler := handler.NewAuthHandler(authSvc)
 
-	log.Println("Migrations applied successfully")
+	http.HandleFunc("/api/register", authHandler.Register)
+	http.HandleFunc("/api/login", authHandler.Login)
+	http.HandleFunc("/api/profile", middleware.AuthMiddleware(authHandler.Profile))
+
+	fmt.Println("Server started at :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
